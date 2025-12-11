@@ -1,0 +1,2408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSC360 - Computer Science Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs/editor/editor.main.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #1e3a8a;
+            --primary-dark: #1e40af;
+            --secondary: #3b82f6;
+            --accent: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --light: #f8fafc;
+            --dark: #1f2937;
+            --sidebar: #1e293b;
+            --sidebar-light: #334155;
+            --code-bg: #0f172a;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius: 8px;
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+
+        .sidebar.collapsed {
+            width: 70px;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .sidebar-header.collapsed {
+            justify-content: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+            color: var(--secondary);
+        }
+
+        .logo-text h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .logo-text span {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            display: block;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+            flex-grow: 1;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: var(--transition);
+            border-left: 4px solid transparent;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background-color: var(--sidebar-light);
+            color: white;
+            border-left-color: var(--secondary);
+        }
+
+        .menu-item i {
+            width: 24px;
+            font-size: 1.2rem;
+            margin-right: 15px;
+        }
+
+        .sidebar.collapsed .menu-item i {
+            margin-right: 0;
+        }
+
+        .menu-text {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .sidebar.collapsed .menu-text {
+            display: none;
+        }
+
+        .user-profile {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .user-info h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .user-info p {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .sidebar.collapsed .user-info {
+            display: none;
+        }
+
+        .toggle-sidebar {
+            position: absolute;
+            right: -15px;
+            top: 20px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--secondary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            z-index: 101;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: calc(100% - 250px);
+            transition: var(--transition);
+        }
+
+        .sidebar.collapsed ~ .main-content {
+            max-width: calc(100% - 70px);
+        }
+
+        .topbar {
+            background-color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            z-index: 99;
+        }
+
+        .topbar-left h1 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .view-switch {
+            display: flex;
+            background-color: #e2e8f0;
+            border-radius: 30px;
+            padding: 5px;
+        }
+
+        .view-btn {
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .view-btn.active {
+            background-color: white;
+            color: var(--primary);
+            box-shadow: var(--shadow);
+        }
+
+        .notification-bell {
+            position: relative;
+            font-size: 1.3rem;
+            color: var(--dark);
+            cursor: pointer;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--accent);
+            color: white;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Dashboard Content */
+        .dashboard-content {
+            padding: 30px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        /* Welcome Banner */
+        .welcome-banner {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 30px;
+            border-radius: var(--radius);
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-banner::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(100px, -100px);
+        }
+
+        .welcome-banner h2 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .welcome-banner p {
+            font-size: 1.1rem;
+            max-width: 800px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hod-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius);
+            width: fit-content;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hod-icon {
+            font-size: 2rem;
+            color: var(--secondary);
+        }
+
+        /* Stats Cards */
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background-color: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+        }
+
+        .stat-icon.blue {
+            background-color: #dbeafe;
+            color: var(--secondary);
+        }
+
+        .stat-icon.green {
+            background-color: #d1fae5;
+            color: var(--success);
+        }
+
+        .stat-icon.orange {
+            background-color: #fef3c7;
+            color: var(--warning);
+        }
+
+        .stat-icon.red {
+            background-color: #fee2e2;
+            color: var(--accent);
+        }
+
+        .stat-info h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .stat-info p {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .section-header h2 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #0da271;
+        }
+
+        .btn-warning {
+            background-color: var(--warning);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background-color: #d97706;
+        }
+
+        .btn-danger {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+
+        /* Assignments */
+        .assignments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .assignment-card {
+            background-color: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .assignment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .assignment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .assignment-header h4 {
+            font-size: 1.3rem;
+            color: var(--primary);
+        }
+
+        .assignment-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-submitted {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-graded {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .assignment-details {
+            margin-bottom: 20px;
+        }
+
+        .assignment-details p {
+            color: #64748b;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .assignment-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Code Editor */
+        .editor-container {
+            background-color: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .editor-header {
+            background-color: var(--code-bg);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+        }
+
+        .editor-header h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+        }
+
+        .editor-tabs {
+            display: flex;
+            background-color: #1e293b;
+            padding: 0 20px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .editor-tab {
+            padding: 12px 20px;
+            color: #94a3b8;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .editor-tab.active {
+            color: white;
+            border-bottom-color: var(--secondary);
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        .editor-body {
+            flex-grow: 1;
+            position: relative;
+        }
+
+        #code-editor {
+            width: 100%;
+            height: 100%;
+        }
+
+        .editor-preview {
+            background-color: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-top: 25px;
+            overflow: hidden;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-header {
+            background-color: var(--code-bg);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-frame {
+            flex-grow: 1;
+            border: none;
+        }
+
+        /* Admin Dashboard */
+        .admin-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .control-card {
+            background-color: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .control-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .control-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .control-icon.blue {
+            background-color: #dbeafe;
+            color: var(--secondary);
+        }
+
+        .control-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .control-card p {
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+
+        /* Admin Tables */
+        .admin-table {
+            background-color: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .table-header {
+            background-color: #f8fafc;
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--primary);
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 6px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .action-btn.edit {
+            background-color: #dbeafe;
+            color: var(--secondary);
+        }
+
+        .action-btn.delete {
+            background-color: #fee2e2;
+            color: var(--accent);
+        }
+
+        .action-btn.view {
+            background-color: #d1fae5;
+            color: var(--success);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            animation: modalAppear 0.3s ease;
+        }
+
+        @keyframes modalAppear {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px;
+            border-radius: var(--radius) var(--radius) 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .file-upload {
+            border: 2px dashed #cbd5e1;
+            border-radius: 6px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .file-upload:hover {
+            border-color: var(--secondary);
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--success);
+            color: white;
+            padding: 15px 25px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--sidebar);
+            color: white;
+            padding: 20px 30px;
+            text-align: center;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .powered-by {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .powered-by span {
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        .copyright {
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .sidebar {
+                position: fixed;
+                height: 100vh;
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                max-width: 100% !important;
+            }
+            
+            .toggle-sidebar {
+                position: fixed;
+                left: 20px;
+                top: 20px;
+                right: auto;
+                z-index: 99;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .topbar {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .assignments-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .stats-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-laptop-code"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h2>CSC360</h2>
+                        <span>CS Student Portal</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar-menu">
+                <a href="#" class="menu-item active" data-section="dashboard">
+                    <i class="fas fa-home"></i>
+                    <span class="menu-text">Dashboard</span>
+                </a>
+                <a href="#" class="menu-item" data-section="assignments">
+                    <i class="fas fa-tasks"></i>
+                    <span class="menu-text">Assignments</span>
+                </a>
+                <a href="#" class="menu-item" data-section="editor">
+                    <i class="fas fa-code"></i>
+                    <span class="menu-text">Code Editor</span>
+                </a>
+                <a href="#" class="menu-item" data-section="submissions">
+                    <i class="fas fa-upload"></i>
+                    <span class="menu-text">My Submissions</span>
+                </a>
+                <a href="#" class="menu-item" data-section="grades">
+                    <i class="fas fa-chart-line"></i>
+                    <span class="menu-text">Grades</span>
+                </a>
+                <a href="#" class="menu-item admin-only" data-section="admin-dashboard" style="display: none;">
+                    <i class="fas fa-cogs"></i>
+                    <span class="menu-text">Admin Dashboard</span>
+                </a>
+                <a href="#" class="menu-item admin-only" data-section="manage-assignments" style="display: none;">
+                    <i class="fas fa-book"></i>
+                    <span class="menu-text">Manage Assignments</span>
+                </a>
+                <a href="#" class="menu-item admin-only" data-section="manage-students" style="display: none;">
+                    <i class="fas fa-users"></i>
+                    <span class="menu-text">Manage Students</span>
+                </a>
+            </div>
+            
+            <div class="user-profile">
+                <div class="avatar" id="user-avatar">CS</div>
+                <div class="user-info">
+                    <h4 id="user-name">Computer Science Student</h4>
+                    <p id="user-role">Student</p>
+                </div>
+            </div>
+            
+            <div class="toggle-sidebar" id="toggle-sidebar">
+                <i class="fas fa-chevron-left"></i>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Topbar -->
+            <div class="topbar">
+                <div class="topbar-left">
+                    <h1><i class="fas fa-university"></i> Department of Computer Science</h1>
+                </div>
+                <div class="topbar-right">
+                    <div class="view-switch">
+                        <button class="view-btn active" id="student-view-btn">Student</button>
+                        <button class="view-btn" id="admin-view-btn">Admin</button>
+                    </div>
+                    <div class="notification-bell">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Welcome Banner (Student View) -->
+                <div class="welcome-banner student-view">
+                    <h2>Welcome to CSC360 Student Portal</h2>
+                    <p>Access your assignments, submit your work, and practice coding with our professional VS Code-like editor. This portal is designed to support your learning journey in computer science.</p>
+                    
+                    <div class="hod-info">
+                        <div class="hod-icon">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600;">Dr. Comfort Amalahu Ed</div>
+                            <div>Head of Department, Computer Science</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Welcome Banner (Admin View) -->
+                <div class="welcome-banner admin-view" style="display: none;">
+                    <h2>Admin Dashboard - Dr. Comfort Amalahu Ed</h2>
+                    <p>Welcome, H.O.D. Manage assignments, monitor student submissions, and oversee the Computer Science department from this comprehensive admin dashboard.</p>
+                    
+                    <div class="hod-info">
+                        <div class="hod-icon">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600;">Administrator Privileges Active</div>
+                            <div>Full control over the CSC360 Portal</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stats Cards -->
+                <div class="stats-cards">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="total-assignments">12</h3>
+                            <p>Total Assignments</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="submitted-count">8</h3>
+                            <p>Submitted</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="pending-count">4</h3>
+                            <p>Pending</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="average-grade">85%</h3>
+                            <p>Average Grade</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Dashboard Section -->
+                <div class="content-section active" id="dashboard-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-home"></i> Recent Activity</h2>
+                    </div>
+                    
+                    <div class="assignments-grid">
+                        <!-- Activity cards will be dynamically generated -->
+                    </div>
+                </div>
+                
+                <!-- Assignments Section -->
+                <div class="content-section" id="assignments-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-tasks"></i> Assignments</h2>
+                        <button class="btn btn-primary" id="refresh-assignments">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    
+                    <div class="assignments-grid" id="assignments-container">
+                        <!-- Assignment cards will be dynamically generated -->
+                    </div>
+                </div>
+                
+                <!-- Code Editor Section -->
+                <div class="content-section" id="editor-section">
+                    <div class="editor-container">
+                        <div class="editor-header">
+                            <h3><i class="fas fa-code"></i> VS Code-like Editor</h3>
+                            <div>
+                                <button class="btn btn-success" id="run-code">
+                                    <i class="fas fa-play"></i> Run
+                                </button>
+                                <button class="btn btn-primary" id="save-code">
+                                    <i class="fas fa-save"></i> Save
+                                </button>
+                                <button class="btn btn-warning" id="new-file">
+                                    <i class="fas fa-file"></i> New
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="editor-tabs">
+                            <div class="editor-tab active" data-tab="html">
+                                <i class="fab fa-html5"></i> index.html
+                            </div>
+                            <div class="editor-tab" data-tab="css">
+                                <i class="fab fa-css3-alt"></i> style.css
+                            </div>
+                            <div class="editor-tab" data-tab="js">
+                                <i class="fab fa-js"></i> script.js
+                            </div>
+                        </div>
+                        
+                        <div class="editor-body">
+                            <div id="code-editor"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="editor-preview">
+                        <div class="preview-header">
+                            <h3><i class="fas fa-eye"></i> Live Preview</h3>
+                            <button class="btn btn-primary" id="refresh-preview">
+                                <i class="fas fa-redo"></i> Refresh
+                            </button>
+                        </div>
+                        <iframe id="preview-frame" class="preview-frame"></iframe>
+                    </div>
+                </div>
+                
+                <!-- Submissions Section -->
+                <div class="content-section" id="submissions-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-upload"></i> My Submissions</h2>
+                        <button class="btn btn-primary" onclick="openSubmitModal()">
+                            <i class="fas fa-plus"></i> New Submission
+                        </button>
+                    </div>
+                    
+                    <div class="admin-table">
+                        <div class="table-header">
+                            <h3>Submission History</h3>
+                            <div>
+                                <input type="text" class="form-control" placeholder="Search submissions..." style="width: 250px;">
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table id="submissions-table">
+                                <thead>
+                                    <tr>
+                                        <th>Assignment</th>
+                                        <th>Submitted On</th>
+                                        <th>Status</th>
+                                        <th>Grade</th>
+                                        <th>Feedback</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Table rows will be dynamically generated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Grades Section -->
+                <div class="content-section" id="grades-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-chart-line"></i> Grades & Performance</h2>
+                        <button class="btn btn-primary">
+                            <i class="fas fa-download"></i> Export Report
+                        </button>
+                    </div>
+                    
+                    <div class="stats-cards">
+                        <div class="stat-card">
+                            <div class="stat-icon blue">
+                                <i class="fas fa-percentage"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>85%</h3>
+                                <p>Overall Average</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon green">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>3</h3>
+                                <p>Top Grades (A)</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon orange">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>1</h3>
+                                <p>Needs Improvement</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon red">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>92%</h3>
+                                <p>Submission Rate</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-table" style="margin-top: 30px;">
+                        <div class="table-header">
+                            <h3>Grade Breakdown</h3>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Assignment</th>
+                                        <th>Topic</th>
+                                        <th>Submitted On</th>
+                                        <th>Grade</th>
+                                        <th>Weight</th>
+                                        <th>Comments</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Grade rows will be dynamically generated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Admin Dashboard Section -->
+                <div class="content-section" id="admin-dashboard-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-cogs"></i> Admin Dashboard</h2>
+                        <div class="view-switch">
+                            <button class="view-btn active">Overview</button>
+                            <button class="view-btn">Analytics</button>
+                            <button class="view-btn">Reports</button>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-controls">
+                        <div class="control-card">
+                            <div class="control-icon blue">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <h3>Create Assignment</h3>
+                            <p>Create and publish new assignments for students</p>
+                            <button class="btn btn-primary" onclick="openCreateAssignmentModal()">
+                                <i class="fas fa-plus"></i> Create New
+                            </button>
+                        </div>
+                        
+                        <div class="control-card">
+                            <div class="control-icon green">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h3>Manage Students</h3>
+                            <p>View and manage student accounts and progress</p>
+                            <button class="btn btn-success" onclick="showSection('manage-students')">
+                                <i class="fas fa-user-edit"></i> Manage
+                            </button>
+                        </div>
+                        
+                        <div class="control-card">
+                            <div class="control-icon orange">
+                                <i class="fas fa-inbox"></i>
+                            </div>
+                            <h3>Review Submissions</h3>
+                            <p>Review and grade student assignment submissions</p>
+                            <button class="btn btn-warning">
+                                <i class="fas fa-check-double"></i> Review
+                            </button>
+                        </div>
+                        
+                        <div class="control-card">
+                            <div class="control-icon red">
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                            <h3>Analytics</h3>
+                            <p>View detailed analytics and performance reports</p>
+                            <button class="btn btn-danger">
+                                <i class="fas fa-chart-bar"></i> View Analytics
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-table" style="margin-top: 30px;">
+                        <div class="table-header">
+                            <h3>Recent Student Activity</h3>
+                            <button class="btn btn-primary">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Student Name</th>
+                                        <th>Last Login</th>
+                                        <th>Recent Submission</th>
+                                        <th>Assignments Due</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Admin activity rows will be dynamically generated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Manage Assignments Section -->
+                <div class="content-section" id="manage-assignments-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-book"></i> Manage Assignments</h2>
+                        <button class="btn btn-primary" onclick="openCreateAssignmentModal()">
+                            <i class="fas fa-plus"></i> Create Assignment
+                        </button>
+                    </div>
+                    
+                    <div class="admin-table">
+                        <div class="table-header">
+                            <h3>All Assignments</h3>
+                            <div>
+                                <input type="text" class="form-control" placeholder="Search assignments..." style="width: 250px;">
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Course</th>
+                                        <th>Due Date</th>
+                                        <th>Submissions</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Assignment management rows will be dynamically generated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Manage Students Section -->
+                <div class="content-section" id="manage-students-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-users"></i> Manage Students</h2>
+                        <button class="btn btn-primary">
+                            <i class="fas fa-user-plus"></i> Add Student
+                        </button>
+                    </div>
+                    
+                    <div class="admin-table">
+                        <div class="table-header">
+                            <h3>Student Roster</h3>
+                            <div>
+                                <input type="text" class="form-control" placeholder="Search students..." style="width: 250px;">
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Student ID</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Course</th>
+                                        <th>Assignments Submitted</th>
+                                        <th>Average Grade</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Student management rows will be dynamically generated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <footer>
+                <div class="footer-content">
+                    <div class="copyright">
+                        &copy; 2023 CSC360 - Computer Science Portal. Department of Computer Science.
+                    </div>
+                    <div class="powered-by">
+                        Securely powered by <span>BeduSec</span>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Submit Assignment Modal -->
+    <div class="modal" id="submit-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-upload"></i> Submit Assignment</h3>
+                <button class="close-modal" onclick="closeModal('submit-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="submit-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="assignment-select">Select Assignment</label>
+                            <select id="assignment-select" class="form-control" required>
+                                <option value="">Choose an assignment</option>
+                                <option value="js-interactive-form">JavaScript Interactive Form</option>
+                                <option value="css-responsive-layout">CSS Responsive Layout</option>
+                                <option value="html-portfolio">HTML Personal Portfolio</option>
+                                <option value="nodejs-api">Node.js API Project</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="student-id">Student ID</label>
+                            <input type="text" id="student-id" class="form-control" value="CSC101/2023/001" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="student-name">Your Name</label>
+                        <input type="text" id="student-name" class="form-control" value="Computer Science Student" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Upload Assignment File</label>
+                        <div class="file-upload" id="file-upload-area" onclick="document.getElementById('file-input').click()">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 2.5rem; margin-bottom: 15px; color: #3498db;"></i>
+                            <p>Drag and drop your files here or click to browse</p>
+                            <p style="font-size: 0.9rem; color: #777; margin-top: 10px;">Supports: .zip, .rar, .html, .css, .js, .pdf (Max: 10MB)</p>
+                        </div>
+                        <input type="file" id="file-input" style="display: none;">
+                        <div id="file-name" style="margin-top: 10px; font-size: 0.9rem;"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="comments">Additional Comments (Optional)</label>
+                        <textarea id="comments" class="form-control" rows="3" placeholder="Any comments about your submission..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success" style="width: 100%; padding: 15px; font-size: 1.1rem;">
+                        <i class="fas fa-paper-plane"></i> Submit Assignment
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Assignment Modal (Admin) -->
+    <div class="modal" id="create-assignment-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus"></i> Create New Assignment</h3>
+                <button class="close-modal" onclick="closeModal('create-assignment-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="create-assignment-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="assignment-title">Assignment Title</label>
+                            <input type="text" id="assignment-title" class="form-control" placeholder="e.g., Web Development Project" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="course-code">Course Code</label>
+                            <select id="course-code" class="form-control" required>
+                                <option value="CSC101">CSC 101</option>
+                                <option value="CSC201">CSC 201</option>
+                                <option value="CSC301">CSC 301</option>
+                                <option value="CSC401">CSC 401</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="due-date">Due Date</label>
+                            <input type="datetime-local" id="due-date" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="max-score">Maximum Score</label>
+                            <input type="number" id="max-score" class="form-control" value="100" min="1" max="1000" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="assignment-description">Assignment Description</label>
+                        <textarea id="assignment-description" class="form-control" rows="5" placeholder="Provide detailed instructions for the assignment..." required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="assignment-resources">Resources & References (Optional)</label>
+                        <textarea id="assignment-resources" class="form-control" rows="3" placeholder="Links to resources, reference materials, etc."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Upload Assignment Files (Optional)</label>
+                        <div class="file-upload" id="admin-file-upload" onclick="document.getElementById('admin-file-input').click()">
+                            <i class="fas fa-file-upload" style="font-size: 2rem; margin-bottom: 10px; color: #3498db;"></i>
+                            <p>Click to upload starter files, templates, or resources</p>
+                        </div>
+                        <input type="file" id="admin-file-input" style="display: none;" multiple>
+                        <div id="admin-file-list" style="margin-top: 10px; font-size: 0.9rem;"></div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="visibility">Visibility</label>
+                            <select id="visibility" class="form-control">
+                                <option value="published">Publish Immediately</option>
+                                <option value="draft">Save as Draft</option>
+                                <option value="scheduled">Schedule Publication</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="assignment-type">Assignment Type</label>
+                            <select id="assignment-type" class="form-control">
+                                <option value="individual">Individual</option>
+                                <option value="group">Group Project</option>
+                                <option value="exam">Exam</option>
+                                <option value="quiz">Quiz</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success" style="width: 100%; padding: 15px; font-size: 1.1rem;">
+                        <i class="fas fa-save"></i> Create Assignment
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notification-text">Operation completed successfully!</span>
+    </div>
+
+    <!-- Monaco Editor Script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs/loader.min.js"></script>
+    <script>
+        // Global variables
+        let isAdminView = false;
+        let editor;
+        let currentFile = 'html';
+        let sidebarCollapsed = false;
+        
+        // Sample data
+        const assignments = [
+            {
+                id: 1,
+                title: "Web Development: Personal Portfolio",
+                course: "CSC 101",
+                dueDate: "2023-10-15",
+                status: "submitted",
+                grade: "95/100",
+                description: "Create a personal portfolio website using HTML, CSS, and JavaScript."
+            },
+            {
+                id: 2,
+                title: "JavaScript Interactive Form",
+                course: "CSC 101",
+                dueDate: "2023-10-22",
+                status: "pending",
+                grade: "Not graded",
+                description: "Build an interactive form with validation using JavaScript."
+            },
+            {
+                id: 3,
+                title: "CSS Responsive Layout",
+                course: "CSC 101",
+                dueDate: "2023-10-30",
+                status: "pending",
+                grade: "Not graded",
+                description: "Create a responsive website layout using CSS Grid and Flexbox."
+            },
+            {
+                id: 4,
+                title: "Node.js API Project",
+                course: "CSC 201",
+                dueDate: "2023-11-10",
+                status: "pending",
+                grade: "Not graded",
+                description: "Build a RESTful API using Node.js and Express."
+            }
+        ];
+        
+        const submissions = [
+            {
+                id: 1,
+                assignment: "Web Development: Personal Portfolio",
+                submittedOn: "2023-10-14",
+                status: "graded",
+                grade: "95/100",
+                feedback: "Excellent work! Great use of responsive design."
+            },
+            {
+                id: 2,
+                assignment: "Database Design Project",
+                submittedOn: "2023-10-05",
+                status: "graded",
+                grade: "88/100",
+                feedback: "Good ER diagram, but needs more normalization."
+            }
+        ];
+        
+        // Default code for editor
+        const defaultCode = {
+            html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSC360 - My Project</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Welcome to CSC360 Code Editor</h1>
+            <p>Build amazing web projects with this VS Code-like editor</p>
+        </header>
+        
+        <nav class="navbar">
+            <a href="#" class="nav-link">Home</a>
+            <a href="#" class="nav-link">About</a>
+            <a href="#" class="nav-link">Projects</a>
+            <a href="#" class="nav-link">Contact</a>
+        </nav>
+        
+        <main class="main-content">
+            <section class="hero">
+                <h2>Create, Test, and Preview</h2>
+                <p>This editor allows you to write HTML, CSS, and JavaScript code with real-time preview.</p>
+                <button id="demo-btn" class="btn">Click Me!</button>
+                <p id="demo-output"></p>
+            </section>
+            
+            <section class="features">
+                <div class="feature-card">
+                    <h3>HTML5</h3>
+                    <p>Modern semantic markup</p>
+                </div>
+                <div class="feature-card">
+                    <h3>CSS3</h3>
+                    <p>Advanced styling capabilities</p>
+                </div>
+                <div class="feature-card">
+                    <h3>JavaScript</h3>
+                    <p>Interactive functionality</p>
+                </div>
+            </section>
+        </main>
+        
+        <footer class="footer">
+            <p>CSC360 - Computer Science Portal &copy; 2023 | Powered by BeduSec</p>
+        </footer>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>`,
+            css: `/* CSC360 Code Editor - CSS Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    color: #333;
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header {
+    text-align: center;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+    color: white;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+}
+
+.header p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.navbar {
+    display: flex;
+    justify-content: center;
+    background-color: white;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.nav-link {
+    padding: 15px 25px;
+    text-decoration: none;
+    color: #1e3a8a;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.nav-link:hover {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.main-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.hero {
+    background-color: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.hero h2 {
+    color: #1e3a8a;
+    margin-bottom: 15px;
+    font-size: 1.8rem;
+}
+
+.btn {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 15px;
+}
+
+.btn:hover {
+    background-color: #1e3a8a;
+    transform: translateY(-2px);
+}
+
+#demo-output {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f1f5f9;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.features {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.feature-card {
+    background-color: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.feature-card h3 {
+    color: #1e3a8a;
+    margin-bottom: 10px;
+}
+
+.footer {
+    text-align: center;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    color: #64748b;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .header h1 {
+        font-size: 2rem;
+    }
+}`,
+            js: `// CSC360 Code Editor - JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Demo button functionality
+    const demoBtn = document.getElementById('demo-btn');
+    const demoOutput = document.getElementById('demo-output');
+    
+    demoBtn.addEventListener('click', function() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString();
+        demoOutput.textContent = \`Button clicked at \${timeString}. Welcome to CSC360!\`;
+        demoOutput.style.color = '#3b82f6';
+        demoOutput.style.fontWeight = 'bold';
+        
+        // Change button text temporarily
+        const originalText = demoBtn.textContent;
+        demoBtn.textContent = 'Clicked!';
+        demoBtn.style.backgroundColor = '#10b981';
+        
+        setTimeout(() => {
+            demoBtn.textContent = originalText;
+            demoBtn.style.backgroundColor = '';
+        }, 1000);
+    });
+    
+    // Navbar hover effect
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
+        link.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.05)';
+        });
+        
+        link.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    });
+    
+    // Feature cards animation
+    const featureCards = document.querySelectorAll('.feature-card');
+    featureCards.forEach((card, index) => {
+        // Add delay for each card
+        card.style.transitionDelay = \`\${index * 0.1}s\`;
+        
+        // Add click event to each card
+        card.addEventListener('click', function() {
+            const cardTitle = this.querySelector('h3').textContent;
+            alert(\`You selected the \${cardTitle} feature!\`);
+        });
+    });
+    
+    // Console greeting
+    console.log('CSC360 Code Editor loaded successfully!');
+    console.log('Welcome to the Department of Computer Science portal.');
+});`
+        };
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Monaco Editor
+            initEditor();
+            
+            // Load initial data
+            loadAssignments();
+            loadSubmissions();
+            loadDashboardData();
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Initialize view (student by default)
+            switchToStudentView();
+        });
+        
+        // Initialize Monaco Editor
+        function initEditor() {
+            require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs' } });
+            
+            require(['vs/editor/editor.main'], function() {
+                editor = monaco.editor.create(document.getElementById('code-editor'), {
+                    value: defaultCode.html,
+                    language: 'html',
+                    theme: 'vs-dark',
+                    fontSize: 14,
+                    minimap: { enabled: true },
+                    automaticLayout: true,
+                    scrollBeyondLastLine: false,
+                    wordWrap: 'on'
+                });
+                
+                // Run code to show initial preview
+                setTimeout(runCode, 500);
+            });
+        }
+        
+        // Set up all event listeners
+        function setupEventListeners() {
+            // Sidebar toggle
+            document.getElementById('toggle-sidebar').addEventListener('click', toggleSidebar);
+            
+            // Menu items
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const section = this.getAttribute('data-section');
+                    showSection(section);
+                    
+                    // Update active menu item
+                    document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // View switch buttons
+            document.getElementById('student-view-btn').addEventListener('click', switchToStudentView);
+            document.getElementById('admin-view-btn').addEventListener('click', switchToAdminView);
+            
+            // Editor tabs
+            document.querySelectorAll('.editor-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    currentFile = this.getAttribute('data-tab');
+                    updateEditorContent();
+                });
+            });
+            
+            // Editor buttons
+            document.getElementById('run-code').addEventListener('click', runCode);
+            document.getElementById('save-code').addEventListener('click', saveCode);
+            document.getElementById('new-file').addEventListener('click', newFile);
+            document.getElementById('refresh-preview').addEventListener('click', runCode);
+            
+            // Submit form
+            document.getElementById('submit-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                closeModal('submit-modal');
+                showNotification('Assignment submitted successfully!');
+            });
+            
+            // Create assignment form
+            document.getElementById('create-assignment-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                closeModal('create-assignment-modal');
+                showNotification('Assignment created and published successfully!');
+            });
+            
+            // File upload
+            document.getElementById('file-input').addEventListener('change', function() {
+                const fileName = this.files.length > 0 ? this.files[0].name : 'No file chosen';
+                document.getElementById('file-name').textContent = `Selected file: ${fileName}`;
+            });
+            
+            // Admin file upload
+            document.getElementById('admin-file-input').addEventListener('change', function() {
+                const fileList = Array.from(this.files).map(f => f.name).join(', ');
+                document.getElementById('admin-file-list').textContent = `Selected files: ${fileList || 'No files chosen'}`;
+            });
+            
+            // Refresh assignments button
+            document.getElementById('refresh-assignments').addEventListener('click', loadAssignments);
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', function(e) {
+                if (e.target.classList.contains('modal')) {
+                    e.target.style.display = 'none';
+                }
+            });
+        }
+        
+        // Toggle sidebar collapse/expand
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const toggleIcon = document.querySelector('#toggle-sidebar i');
+            
+            sidebar.classList.toggle('collapsed');
+            
+            if (sidebar.classList.contains('collapsed')) {
+                toggleIcon.classList.remove('fa-chevron-left');
+                toggleIcon.classList.add('fa-chevron-right');
+            } else {
+                toggleIcon.classList.remove('fa-chevron-right');
+                toggleIcon.classList.add('fa-chevron-left');
+            }
+            
+            sidebarCollapsed = !sidebarCollapsed;
+        }
+        
+        // Show a specific section
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show the requested section
+            document.getElementById(`${sectionId}-section`).classList.add('active');
+        }
+        
+        // Switch to student view
+        function switchToStudentView() {
+            isAdminView = false;
+            
+            // Update UI
+            document.getElementById('student-view-btn').classList.add('active');
+            document.getElementById('admin-view-btn').classList.remove('active');
+            
+            // Show student welcome banner
+            document.querySelector('.welcome-banner.student-view').style.display = 'block';
+            document.querySelector('.welcome-banner.admin-view').style.display = 'none';
+            
+            // Update user info
+            document.getElementById('user-name').textContent = 'Computer Science Student';
+            document.getElementById('user-role').textContent = 'Student';
+            document.getElementById('user-avatar').textContent = 'CS';
+            
+            // Hide admin menu items
+            document.querySelectorAll('.admin-only').forEach(item => {
+                item.style.display = 'none';
+            });
+            
+            // Show dashboard section
+            showSection('dashboard');
+            
+            // Update active menu item
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            document.querySelector('.menu-item[data-section="dashboard"]').classList.add('active');
+            
+            // Update stats for student view
+            updateStudentStats();
+        }
+        
+        // Switch to admin view
+        function switchToAdminView() {
+            isAdminView = true;
+            
+            // Update UI
+            document.getElementById('admin-view-btn').classList.add('active');
+            document.getElementById('student-view-btn').classList.remove('active');
+            
+            // Show admin welcome banner
+            document.querySelector('.welcome-banner.student-view').style.display = 'none';
+            document.querySelector('.welcome-banner.admin-view').style.display = 'block';
+            
+            // Update user info
+            document.getElementById('user-name').textContent = 'Dr. Comfort Amalahu Ed';
+            document.getElementById('user-role').textContent = 'Head of Department';
+            document.getElementById('user-avatar').textContent = 'CA';
+            
+            // Show admin menu items
+            document.querySelectorAll('.admin-only').forEach(item => {
+                item.style.display = 'flex';
+            });
+            
+            // Show admin dashboard section
+            showSection('admin-dashboard');
+            
+            // Update active menu item
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            document.querySelector('.menu-item[data-section="admin-dashboard"]').classList.add('active');
+            
+            // Update stats for admin view
+            updateAdminStats();
+        }
+        
+        // Update editor content based on current file
+        function updateEditorContent() {
+            if (!editor) return;
+            
+            let language = 'html';
+            
+            switch(currentFile) {
+                case 'html':
+                    editor.setValue(defaultCode.html);
+                    language = 'html';
+                    break;
+                case 'css':
+                    editor.setValue(defaultCode.css);
+                    language = 'css';
+                    break;
+                case 'js':
+                    editor.setValue(defaultCode.js);
+                    language = 'javascript';
+                    break;
+            }
+            
+            monaco.editor.setModelLanguage(editor.getModel(), language);
+        }
+        
+        // Run code and update preview
+        function runCode() {
+            if (!editor) return;
+            
+            // Get code from all files
+            const htmlCode = currentFile === 'html' ? editor.getValue() : defaultCode.html;
+            const cssCode = currentFile === 'css' ? editor.getValue() : defaultCode.css;
+            const jsCode = currentFile === 'js' ? editor.getValue() : defaultCode.js;
+            
+            const previewFrame = document.getElementById('preview-frame');
+            const previewDocument = previewFrame.contentDocument || previewFrame.contentWindow.document;
+            
+            const fullHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSC360 Code Preview</title>
+    <style>${cssCode}</style>
+</head>
+<body>
+    ${htmlCode}
+    <script>${jsCode}<\/script>
+</body>
+</html>`;
+            
+            previewDocument.open();
+            previewDocument.write(fullHTML);
+            previewDocument.close();
+            
+            showNotification('Code executed successfully! Preview updated.');
+        }
+        
+        // Save code
+        function saveCode() {
+            if (!editor) return;
+            
+            const code = editor.getValue();
+            const language = currentFile.toUpperCase();
+            
+            // In a real application, this would save to a backend
+            console.log(`Saving ${language} code:`, code);
+            showNotification(`${language} code saved successfully!`);
+        }
+        
+        // Create new file
+        function newFile() {
+            if (!editor) return;
+            
+            if (confirm('Create a new file? Current unsaved changes will be lost.')) {
+                editor.setValue('');
+                showNotification('New file created. Start coding!');
+            }
+        }
+        
+        // Load assignments into the assignments grid
+        function loadAssignments() {
+            const container = document.getElementById('assignments-container');
+            container.innerHTML = '';
+            
+            assignments.forEach(assignment => {
+                const card = document.createElement('div');
+                card.className = 'assignment-card';
+                
+                let statusClass = '';
+                let statusText = '';
+                
+                switch(assignment.status) {
+                    case 'submitted':
+                        statusClass = 'status-submitted';
+                        statusText = 'Submitted';
+                        break;
+                    case 'pending':
+                        statusClass = 'status-pending';
+                        statusText = 'Pending';
+                        break;
+                    case 'graded':
+                        statusClass = 'status-graded';
+                        statusText = 'Graded';
+                        break;
+                }
+                
+                card.innerHTML = `
+                    <div class="assignment-header">
+                        <h4>${assignment.title}</h4>
+                        <span class="assignment-status ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="assignment-details">
+                        <p><i class="fas fa-book"></i> ${assignment.course}</p>
+                        <p><i class="fas fa-calendar-alt"></i> Due: ${assignment.dueDate}</p>
+                        <p><i class="fas fa-chart-line"></i> ${assignment.grade}</p>
+                        <p>${assignment.description}</p>
+                    </div>
+                    <div class="assignment-actions">
+                        ${assignment.status === 'pending' 
+                            ? `<button class="btn btn-primary" onclick="openSubmitModal()"><i class="fas fa-download"></i> Download</button>
+                               <button class="btn btn-success" onclick="openSubmitModal()"><i class="fas fa-upload"></i> Submit</button>`
+                            : `<button class="btn btn-success"><i class="fas fa-eye"></i> View</button>
+                               <button class="btn btn-primary"><i class="fas fa-download"></i> Download Feedback</button>`}
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+            
+            showNotification('Assignments loaded successfully!');
+        }
+        
+        // Load submissions into the table
+        function loadSubmissions() {
+            const tableBody = document.querySelector('#submissions-table tbody');
+            tableBody.innerHTML = '';
+            
+            submissions.forEach(submission => {
+                const row = document.createElement('tr');
+                
+                let statusClass = '';
+                let statusText = '';
+                
+                switch(submission.status) {
+                    case 'submitted':
+                        statusClass = 'status-pending';
+                        statusText = 'Submitted';
+                        break;
+                    case 'graded':
+                        statusClass = 'status-graded';
+                        statusText = 'Graded';
+                        break;
+                }
+                
+                row.innerHTML = `
+                    <td>${submission.assignment}</td>
+                    <td>${submission.submittedOn}</td>
+                    <td><span class="assignment-status ${statusClass}">${statusText}</span></td>
+                    <td><strong>${submission.grade}</strong></td>
+                    <td>${submission.feedback}</td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="action-btn view"><i class="fas fa-eye"></i></button>
+                            <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+                            <button class="action-btn delete"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // Load dashboard data
+        function loadDashboardData() {
+            // This would load data from backend in a real application
+            console.log('Loading dashboard data...');
+        }
+        
+        // Update student stats
+        function updateStudentStats() {
+            document.getElementById('total-assignments').textContent = '12';
+            document.getElementById('submitted-count').textContent = '8';
+            document.getElementById('pending-count').textContent = '4';
+            document.getElementById('average-grade').textContent = '85%';
+        }
+        
+        // Update admin stats
+        function updateAdminStats() {
+            document.getElementById('total-assignments').textContent = '24';
+            document.getElementById('submitted-count').textContent = '142';
+            document.getElementById('pending-count').textContent = '38';
+            document.getElementById('average-grade').textContent = '78%';
+        }
+        
+        // Open modal
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+        
+        // Close modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // Open submit assignment modal
+        function openSubmitModal() {
+            openModal('submit-modal');
+        }
+        
+        // Open create assignment modal (admin)
+        function openCreateAssignmentModal() {
+            // Set due date to tomorrow by default
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const formattedDate = tomorrow.toISOString().slice(0, 16);
+            
+            document.getElementById('due-date').value = formattedDate;
+            openModal('create-assignment-modal');
+        }
+        
+        // Show notification
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            document.getElementById('notification-text').textContent = message;
+            
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Mobile responsiveness - toggle sidebar on mobile
+        if (window.innerWidth <= 1200) {
+            document.getElementById('sidebar').classList.add('collapsed');
+            document.querySelector('#toggle-sidebar i').classList.remove('fa-chevron-left');
+            document.querySelector('#toggle-sidebar i').classList.add('fa-chevron-right');
+        }
+    </script>
+</body>
+</html>
